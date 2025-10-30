@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Seed of Light ✨</title>
+
+  <!-- Leaflet CSS + JS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -81,11 +83,13 @@
     let markers = [];
     let lightsVisible = false;
 
+    // Add map tiles
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 18,
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
+    // Parse location (lat,lng)
     function parseLocation(location) {
       if (!location) return null;
       const parts = location.split(",").map((x) => parseFloat(x.trim()));
@@ -94,6 +98,25 @@
         : null;
     }
 
+    // ✅ NEW: Vote for a Light
+    async function voteLight(lightId) {
+      try {
+        const res = await fetch(`${apiBase}/v0/vote/${lightId}`, { method: "POST" });
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(`🌟 You voted! Total votes: ${data.votes}`);
+          if (lightsVisible) fetchLights(); // refresh to update counts
+        } else {
+          alert("❌ Failed to vote: " + (data.error || "Unknown error"));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("⚠️ Error while voting.");
+      }
+    }
+
+    // Fetch and display all lights
     async function fetchLights() {
       const res = await fetch(`${apiBase}/v0/constellation`);
       const lights = await res.json();
@@ -103,6 +126,7 @@
       lights.forEach((light) => {
         const loc = parseLocation(light.location);
         if (loc) {
+          const votes = light.votes || 0;
           const marker = L.circleMarker(loc, {
             radius: 6,
             fillColor: "#FFD700",
@@ -113,13 +137,31 @@
           })
             .addTo(map)
             .bindPopup(
-              `<b>${light.name}</b><br>${light.message}<br><small>${light.location || ""}</small>`
+              `
+              <b>${light.name}</b><br>
+              ${light.message}<br>
+              <small>${light.location || ""}</small><br><br>
+              <button 
+                onclick="voteLight('${light.id}')"
+                style="
+                  margin-top:5px;
+                  background:#2ecc71;
+                  border:none;
+                  color:#fff;
+                  padding:5px 8px;
+                  border-radius:4px;
+                  cursor:pointer;
+                ">
+                ❤️ Vote (${votes})
+              </button>
+              `
             );
           markers.push(marker);
         }
       });
     }
 
+    // Submit new light
     async function submitLight() {
       const name = document.getElementById("name").value.trim();
       const message = document.getElementById("message").value.trim();
@@ -139,12 +181,16 @@
 
       if (res.ok) {
         alert("✨ Light added successfully!");
+        document.getElementById("name").value = "";
+        document.getElementById("message").value = "";
+        document.getElementById("location").value = "";
         if (lightsVisible) fetchLights();
       } else {
         alert("Failed to add Light.");
       }
     }
 
+    // Toggle display of lights
     function toggleLights() {
       const btn = event.target;
       if (lightsVisible) {

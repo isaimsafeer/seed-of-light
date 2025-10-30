@@ -43,7 +43,7 @@ def home():
 async def add_light(light: Light):
     lights = load_lights()
     light_dict = light.dict()
-
+    
     # 🌍 Geocode if needed
     if light_dict["location"] and "," not in light_dict["location"]:
         try:
@@ -55,8 +55,9 @@ async def add_light(light: Light):
                 light_dict["location"] = f"{lat},{lon}"
         except Exception as e:
             print("⚠️ Geocoding failed:", e)
-
+    
     light_dict["id"] = f"L-{len(lights)+1:04d}"
+    light_dict["votes"] = 0  # ✅ Initialize votes
     lights.append(light_dict)
     save_lights(lights)
     return {"status": "ok", "light": light_dict}
@@ -65,3 +66,13 @@ async def add_light(light: Light):
 def get_constellation():
     """Return all Lights collected so far."""
     return load_lights()
+
+@app.post("/v0/vote/{light_id}")
+def vote_light(light_id: str):
+    lights = load_lights()
+    for light in lights:
+        if light.get("id") == light_id:  # ✅ safe key access
+            light["votes"] = light.get("votes", 0) + 1
+            save_lights(lights)
+            return {"status": "voted", "votes": light["votes"]}
+    return {"error": "not found"}

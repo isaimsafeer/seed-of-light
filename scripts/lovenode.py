@@ -5,7 +5,7 @@ import requests
 from datetime import datetime
 
 DATA_FILE = 'lights.json'
-REFLECTOR_URL = 'https://your-live-api-url.onrender.com/v0/lights'  # Replace with your deployed Reflector URL
+REFLECTOR_URL = 'https://seed-of-light-production.up.railway.app/v0/lights'  # Replace with your deployed Reflector URL
 
 os.makedirs(os.path.dirname(DATA_FILE) or '.', exist_ok=True)
 
