@@ -1,23 +1,9 @@
 [
   {
-    "name": "Taimoor",
-    "message": "Helped People",
-    "location": "England",
-    "timestamp": null,
-    "light_id": "LIGHT-0004"
-  },
-  {
     "name": "Saim Safeer",
     "message": "Helped Poor",
     "location": "31.5204,74.3587",
     "timestamp": null,
     "light_id": "LIGHT-0005"
-  },
-  {
-    "name": "Saim Safeer",
-    "message": "Helped",
-    "location": "52.5310214,-1.2649062",
-    "timestamp": null,
-    "id": "L-0003"
   }
 ]

@@ -78,11 +78,10 @@ pip install -r requirements.txt
 
 ### ✅ Start Command
 ```bash
-uvicorn api.seeds_api_stub:app --host 0.0.0.0 --port ${PORT}
+uvicorn scripts.reflector_stub:app --host 0.0.0.0 --port ${PORT}
 ```
 
-Or just use this **Procfile**:
-```
+
 web: uvicorn api.seeds_api_stub:app --host 0.0.0.0 --port ${PORT}
 ```
 
@@ -93,14 +92,6 @@ https://kind-rejoicing.up.railway.app
 
 ---
 
-## 📚 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|-----------|-------------|
-| **GET** | `/v0/seeds` | Fetch all logged seeds |
-| **POST** | `/v0/seeds` | Add a new seed (act of kindness) |
-| **POST** | `/v0/update/{seed_id}` | Add an update/note to a specific seed |
-| **POST** | `/v0/vote/{seed_id}` | Vote or support a specific seed |
 
 ### Example Request
 ```bash
