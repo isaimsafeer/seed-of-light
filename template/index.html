@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seed of Light ✨</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: #0b0e16;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.3rem;
+      letter-spacing: 0.5px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(4px);
+    }
+    #map {
+      flex: 1;
+      width: 100%;
+    }
+    #form-container {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    input, button {
+      padding: 0.6rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    input {
+      width: 180px;
+    }
+    button {
+      background: #2ecc71;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #27ae60;
+    }
+  </style>
+</head>
+<body>
+  <header>🌱 Seed of Light — Acts of Kindness Around the World</header>
+
+  <div id="form-container">
+    <input type="text" id="name" placeholder="Your Name" required />
+    <input type="text" id="message" placeholder="Your Act of Kindness" required />
+    <input type="text" id="location" placeholder="Location (lat,lng or city)" />
+    <button onclick="submitLight()">Add Light ✨</button>
+    <button onclick="toggleLights()">Show Lights 🌍</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    const apiBase = window.location.origin;
+    const map = L.map("map").setView([20, 0], 2);
+    let markers = [];
+    let lightsVisible = false;
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map);
+
+    function parseLocation(location) {
+      if (!location) return null;
+      const parts = location.split(",").map((x) => parseFloat(x.trim()));
+      return parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])
+        ? parts
+        : null;
+    }
+
+    async function fetchLights() {
+      const res = await fetch(`${apiBase}/v0/constellation`);
+      const lights = await res.json();
+      markers.forEach((m) => map.removeLayer(m));
+      markers = [];
+
+      lights.forEach((light) => {
+        const loc = parseLocation(light.location);
+        if (loc) {
+          const marker = L.circleMarker(loc, {
+            radius: 6,
+            fillColor: "#FFD700",
+            color: "#fff",
+            weight: 1,
+            opacity: 0.8,
+            fillOpacity: 0.8,
+          })
+            .addTo(map)
+            .bindPopup(
+              `<b>${light.name}</b><br>${light.message}<br><small>${light.location || ""}</small>`
+            );
+          markers.push(marker);
+        }
+      });
+    }
+
+    async function submitLight() {
+      const name = document.getElementById("name").value.trim();
+      const message = document.getElementById("message").value.trim();
+      const location = document.getElementById("location").value.trim();
+
+      if (!name || !message) {
+        alert("Please enter your name and act of kindness!");
+        return;
+      }
+
+      const light = { name, message, location };
+      const res = await fetch(`${apiBase}/v0/lights`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(light),
+      });
+
+      if (res.ok) {
+        alert("✨ Light added successfully!");
+        if (lightsVisible) fetchLights();
+      } else {
+        alert("Failed to add Light.");
+      }
+    }
+
+    function toggleLights() {
+      const btn = event.target;
+      if (lightsVisible) {
+        markers.forEach((m) => map.removeLayer(m));
+        markers = [];
+        lightsVisible = false;
+        btn.textContent = "Show Lights 🌍";
+      } else {
+        fetchLights();
+        lightsVisible = true;
+        btn.textContent = "Hide Lights ❌";
+      }
+    }
+  </script>
+</body>
+</html>
